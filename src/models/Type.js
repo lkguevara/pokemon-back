@@ -23,4 +23,4 @@ module.exports = (sequelize) => {
   );
 };
 
-// No se le pasa el id porqué en este caso no se tendrá otro id que no sea el que se genera automáticamente
+// No se le pasa el id porqué en este caso no se tendrá otro id que no sea el que se genera automáticamente. 
