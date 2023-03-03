@@ -1,4 +1,4 @@
-const { DataTypes } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 // Exportamos una funcion que define el modelo
 // Luego le injectamos la conexion a sequelize.
 module.exports = (sequelize) => {
@@ -6,7 +6,7 @@ module.exports = (sequelize) => {
   sequelize.define('Pokemon', {
     id: {
       type: DataTypes.UUID, // me ayuda para que no se repitan los id
-      defaultValue: DataTypes.UUID, 
+      defaultValue: Sequelize.UUIDV4, 
       allowNull: false, //No se permite que el campo este vacío
       primaryKey: true // clave primaria
     },
