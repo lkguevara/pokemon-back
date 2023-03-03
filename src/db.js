@@ -42,8 +42,8 @@ sequelize.models = Object.fromEntries(capsEntries);
 const { Pokemon, Type} = sequelize.models;
 
 // Aca vendrian las relaciones
-Pokemon.belongsToMany(Type, { through: 'pokemon_type' }); // PokemonType es el nombre de la tabla intermedia
-Type.belongsToMany(Pokemon, { through: 'pokemon_type' });
+Pokemon.belongsToMany(Type, { through: 'Pokemon_type' }); // PokemonType es el nombre de la tabla intermedia
+Type.belongsToMany(Pokemon, { through: 'Pokemon_type' });
 
 
 module.exports = {
