@@ -1,17 +1,15 @@
 const axios = require ('axios')
 const { Pokemon, Type } = require('../db.js')
 
-
+// * Obteniendo todos los pokemons
 const getAllPokemons = async (req, res) => {
     const { createBy } = req.query
 
     try {
-// Parte 1. traer todos los pokemons de la api
-      const response = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=20');
+//* Parte 1. traer todos los pokemons de la api
+      const response = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=40');
       const pokeApi = response.data.results
       // console.log(pokeApi)
-
-      // traer los pokemons con la propiedades id, name, image, types, life, attack, defense
       const pokeDetails = await Promise.all(
         pokeApi.map(async (pokemon) => {
           const result = await axios.get(pokemon.url)
@@ -28,29 +26,29 @@ const getAllPokemons = async (req, res) => {
       )
       // console.log(pokeDetails)
 
-// Parte 2. Traer los pokemons de la base de datos
-      //Obtener todos los pokemons de la base de datos
-  const dbData = await Pokemon.findAll({
-        //Obteniendo los types de cada pokemon
+//* Parte 2. Traer los pokemons de la base de datos
+    const dbData = await Pokemon.findAll({
+    // incluye el modelo type y sus atributos para poder relacionarlos con el pokemon
         include: [
           {
             model: Type,
             attributes: ['name'],
+            // comprobación que se realiza para que se traiga unicamente el atributo name
             through: {
               attributes: []
             }
           },
         ],   
      });
-    //  Constante para mapear los datos de la base de datos
-      const pokeDb = dbData.map(e => e.dataValues) 
-      // console.log(pokeDb) //Consologea los pokemons de la base de datos
+    // Traer la informacion de la base de datos. El dataValues son los datos de la api dentro de la base de datos
+    const pokeDb = dbData.map(e => e.dataValues) 
+    // console.log(pokeDb) 
 
 // Parte 3. Unir los pokemons de la api con los de la base de datos
       const pokeAll = pokeDetails.concat(pokeDb)
-      console.log(pokeAll)
+      // console.log(pokeAll)
 
-// Parte 4. Condicional para filtrar por createBy
+//* Parte 4. Condicional para filtrar por createBy
       if (createBy === 'dataBase') {
         res.status(200).send(pokeDb.length ? pokeDb : 'No hay pokemons en la base de datos')
       } else if (createBy === 'db') {
@@ -65,7 +63,7 @@ const getAllPokemons = async (req, res) => {
     }
 }
 
-
+// * Obteniendo un pokemon por id
 const getPokemonId = async (req, res) => {
   const { id } = req.params
 
@@ -119,14 +117,15 @@ const getPokemonId = async (req, res) => {
 
 } 
 
-
+// * Obteniendo un pokemon por nombre
 const getPokemonName = async (req, res) => {
-  const { q } = req.query
+  const { pokeName } = req.query
+  /*
   try {
     // 1. Buscar el pokemon en la bd
     const pokeFromDb = await Pokemon.findOne({
       where: {
-        name: q
+        name: pokeName
       },
     })
 
@@ -136,7 +135,7 @@ const getPokemonName = async (req, res) => {
     }
 
     // 3. Si no se encuentra en la bd, busca en la api
-    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${q}`)
+    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokeName}`)
     // Extraer los datos necesarios de la respuesta de la API
     const { name, sprites, types } = response.data;
     const image = sprites.other['official-artwork'].front_default;
@@ -158,22 +157,37 @@ const getPokemonName = async (req, res) => {
     console.error(error);
     res.status(400).json({error: error.message});
   }
+  */
 
+  try {
+    let pokeNameAll = await getAllPokemons()
+
+    if (pokeName){
+      let pokemonName = await pokeNameAll.filter (e => e.pokeName.toLowerCase.includes(pokeName.toLowerCase))
+      pokemonName.length ? res.status(200).send(pokemonName) : res.stats(400).send("Pokemon no existe")
+    }
+    else{
+      res.status(200).send(pokeNameAll)
+    }
+  }
+  catch (error){
+    console.error(error);
+    res.status(400).json({error: error.message});
+  }
 
 }
 
-
+// * Creando un pokemon
 const postPokemons = async (req, res) => {
+  // propiedades que se van a recibir del body
   const {
     name,
-    types,
     image,
     life,
     attack,
     defense,
-    speed,
-    height,
-    weight,
+    createdInDb,
+    types
   } = req.body;
 
   try {
@@ -187,7 +201,7 @@ const postPokemons = async (req, res) => {
     )
       return res.status(400).json("Alguno de los datos no es un número");
 
-    if (!name) return res.status(400).json("Es neceario el nombre");
+    if (!name) return res.status(400).json("Es necesario el nombre");
 
     const existe = await Pokemon.findOne({ where: { name: name } });
     if (existe) return res.status(400).json("El pokemón ya existe");
@@ -233,8 +247,6 @@ const postPokemons = async (req, res) => {
       .json({ message: error.message, mensaje: "El pokemon ya existe" });
   }
   }
-
-
 
 
 module.exports = {
