@@ -191,62 +191,50 @@ const postPokemons = async (req, res) => {
   } = req.body;
 
   try {
-    if (
-      isNaN(life) ||
-      isNaN(attack) ||
-      isNaN(defense) ||
-      isNaN(speed) ||
-      isNaN(height) ||
-      isNaN(weight)
-    )
-      return res.status(400).json("Alguno de los datos no es un número");
-
-    if (!name) return res.status(400).json("Es necesario el nombre");
-
-    const existe = await Pokemon.findOne({ where: { name: name } });
-    if (existe) return res.status(400).json("El pokemón ya existe");
-
-    const newPokemon = await Pokemon.create(
-      {
-        name: name.toLowerCase(), // con este metodo convertimos el name en minuscula
-        image: image,
-        life: Number(life),
-        attack: Number(attack),
-        defense: Number(defense),
-        speed: Number(speed),
-        height: Number(height),
-        weight: Number(weight),
-      },
-      {
-        include: [Type],
-      }
-    );
-
-    // Hacemos la relacion del nuevo pokemon con todos los types que llegan en el array
-    const pokemonTypes = await Type.findAll({
+    // validar que se reciban todos los datos
+    if (!name || !image || !life || !attack || !defense ) {
+      return res.status(400).send('Faltan datos');
+    }
+    // validar que el pokemon no exista en la base de datos
+    const pokeFromDb = await Pokemon.findOne({
       where: {
-        name: types,
+        name: name
       },
+    })
+    if (pokeFromDb) {
+      return res.status(400).send('El pokemon ya existe');
+    }
+    // crear el pokemon
+    const newPokemon = await Pokemon.create({
+      name,
+      image,
+      life,
+      attack,
+      defense,
+      createdInDb,
+      types
     });
+    
+    // Agregar los tipos al pokemon
+    const typeOrTypes = await Type.findAll({
+      where: {
+        name: types
+      }
+    })
+    await newPokemon.addTypes(typeOrTypes)
+  
 
-    await newPokemon.addtypes(pokemonTypes);
+    // enviar el pokemon como respuesta
+    res.status(200).send(newPokemon);
 
-    const typeID = await Pokemon.findByPk(newPokemon.id, {
-      include: [
-        {
-          model: Type,
-          as: "types",
-        },
-      ],
-    });
 
-    res.status(200).send(typeID.dataValues);
-  } catch (error) {
-    res
-      .status(400)
-      .json({ message: error.message, mensaje: "El pokemon ya existe" });
   }
+  catch (error) {
+    console.error(error);
+    res.status(400).json({error: error.message});
   }
+}
+
 
 
 module.exports = {
