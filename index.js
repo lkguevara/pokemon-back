@@ -5,7 +5,7 @@ const getAllTypes = require("./src/controllers/types"); // con esto nos evitamos
 const port = process.env.PORT || 3001;
 
 // Syncing all the models at once.
-conn.sync({ force: false }).then(() => {
+conn.sync({ force: true }).then(() => {
   server.listen(process.env.PORT, async () => {
     console.log(`server listening in port ${port}`); // eslint-disable-line no-console
   });

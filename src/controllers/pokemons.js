@@ -120,45 +120,7 @@ const getPokemonId = async (req, res) => {
 // * Obteniendo un pokemon por nombre
 const getPokemonName = async (req, res) => {
   const { pokeName } = req.query
-  /*
-  try {
-    // 1. Buscar el pokemon en la bd
-    const pokeFromDb = await Pokemon.findOne({
-      where: {
-        name: pokeName
-      },
-    })
-
-    // 2. Si se encuentra en la bd, lo envia
-    if (pokeFromDb) {
-      return res.json(pokeFromDb)
-    }
-
-    // 3. Si no se encuentra en la bd, busca en la api
-    const response = await axios.get(`https://pokeapi.co/api/v2/pokemon/${pokeName}`)
-    // Extraer los datos necesarios de la respuesta de la API
-    const { name, sprites, types } = response.data;
-    const image = sprites.other['official-artwork'].front_default;
-    const type = types.map((t) => t.type.name).join(', ');
-
-    // Crear un nuevo Pokémon con los datos obtenidos de la API
-    const pokemonFromAPI = await Pokemon.create({
-      name,
-      type,
-      image,
-    });
-
-    // Enviar el nuevo Pokémon como respuesta
-    res.json(pokemonFromAPI);
-
-    
-
-  } catch (error) {
-    console.error(error);
-    res.status(400).json({error: error.message});
-  }
-  */
-
+ 
   try {
     let pokeNameAll = await getAllPokemons()
 
