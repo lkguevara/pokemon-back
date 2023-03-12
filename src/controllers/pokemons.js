@@ -186,54 +186,40 @@ const postPokemons = async (req, res) => {
     life,
     attack,
     defense,
-    createdInDb,
-    types
+    createDb,
+    type
   } = req.body;
 
   try {
-    // validar que se reciban todos los datos
-    if (!name || !image || !life || !attack || !defense ) {
-      return res.status(400).send('Faltan datos');
-    }
-    // validar que el pokemon no exista en la base de datos
-    const pokeFromDb = await Pokemon.findOne({
-      where: {
-        name: name
-      },
-    })
-    if (pokeFromDb) {
-      return res.status(400).send('El pokemon ya existe');
-    }
-    // crear el pokemon
-    const newPokemon = await Pokemon.create({
+    // crear el pokemon con los datos recibidos
+    let pokemonCreated = await Pokemon.create({
       name,
       image,
       life,
       attack,
       defense,
-      createdInDb,
-      types
-    });
-    
+      createDb
+    })
+    // no se le pasa el type porqué se debe realizar la relación aparte
+
     // Agregar los tipos al pokemon
-    const typeOrTypes = await Type.findAll({
+    let pokemonType = await Type.findAll({
       where: {
-        name: types
+        name: type
       }
     })
-    await newPokemon.addTypes(typeOrTypes)
+
+    pokemonCreated.addType(pokemonType)
+    res.send('personaje creado con éxito')
   
-
-    // enviar el pokemon como respuesta
-    res.status(200).send(newPokemon);
-
-
   }
+
   catch (error) {
     console.error(error);
     res.status(400).json({error: error.message});
   }
 }
+
 
 
 
